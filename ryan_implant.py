@@ -10,7 +10,10 @@ import time
 import random
 import tempfile
 
-#import dropbox
+import dropbox
+
+with open("./dropbox_tok", "r") as fil:
+    dbx = dropbox.Dropbox(fil.read().rstrip('\n'))
 
 # For both of these, throw away the stdout+stderr
 def assemble_pdf_data(data: bytes, key: str, output_name: str):
@@ -25,7 +28,9 @@ def assemble_pdf_path(path: str, key: str, output_name: str):
                         "embed", path, "./pdf_base.pdf"], capture_output=True)
 
 def upload_file(file_path: str):
-    pass
+    with open(file_path, "rb") as fil:
+        fil_dat = fil.read()
+    dbx.files_upload(fil_dat, file_path[1:], dropbox.files.WriteMode.add)
 
 def main():
     # TODO: load from a file
@@ -78,7 +83,7 @@ def main():
                 elif line.startswith("upload "):
                     path = line[len("upload "):]
                     output_string += f"Uploading as {current_time}_{len(upload_list)}.pdf"
-                    upload_list.append(path)
+                    upload_list.append(os.path.expanduser(path))
                 else:
                     output_string += "Command not recognized"
                 output_collation.append(output_string)
@@ -88,16 +93,27 @@ def main():
         ret_val += '\n'
         #print(ret_val)
 
-        output_path = f"./{current_time}.pdf"
-        assemble_pdf_data(bytes(ret_val, "utf8"), str(current_time), output_path)
-        upload_file(output_path)
-        #os.unlink(output_path)
-
-        for i, path in enumerate(upload_list):
-            output_path = f"./{current_time}_{i}.pdf"
-            assemble_pdf_path(path, str(current_time), output_path)
+        try:
+            output_path = f"./{current_time}.pdf"
+            assemble_pdf_data(bytes(ret_val, "utf8"), str(current_time), output_path)
             upload_file(output_path)
-            #os.unlink(output_path)
+            os.unlink(output_path)
+
+            for i, path in enumerate(upload_list):
+                output_path = f"./{current_time}_{i}.pdf"
+                assemble_pdf_path(path, str(current_time), output_path)
+                upload_file(output_path)
+                os.unlink(output_path)
+        except Exception as e:
+            print(repr(e))
+        finally:
+            output_path = f"./{current_time}.pdf"
+            if os.path.exists(output_path):
+                os.unlink(output_path)
+            for i, path in enumerate(upload_list):
+                output_path = f"./{current_time}_{i}.pdf"
+                if os.path.exists(output_path):
+                    os.unlink(output_path)
 
         time.sleep(60+10*random.random())
 
