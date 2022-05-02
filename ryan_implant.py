@@ -12,22 +12,25 @@ import tempfile
 
 import dropbox
 
-with open("./dropbox_tok", "r") as fil:
-    dbx = dropbox.Dropbox(fil.read().rstrip('\n'))
+import traceback
 
 # For both of these, throw away the stdout+stderr
 def assemble_pdf_data(data: bytes, key: str, output_name: str):
     with tempfile.NamedTemporaryFile() as data_fil:
         data_fil.write(data)
         # This only works on Unix-like systems
-        subprocess.run(["./pdf_hide/pdf_hide", "-o", output_name, "-k", key,
-                        "embed", data_fil.name, "./pdf_base.pdf"], capture_output=True)
+        hide_result = subprocess.run(["./pdf_hide/pdf_hide", "-o", output_name, 
+            "-k", key, "embed", data_fil.name, "./pdf_base.pdf"], capture_output=True)
+        if not hide_result.ok:
+            print(hide_result.stderr)
 
 def assemble_pdf_path(path: str, key: str, output_name: str):
-    subprocess.run(["./pdf_hide/pdf_hide", "-o", output_name, "-k", key,
-                        "embed", path, "./pdf_base.pdf"], capture_output=True)
+    hide_result = subprocess.run(["./pdf_hide/pdf_hide", "-o", output_name,
+        "-k", key, "embed", path, "./pdf_base.pdf"], capture_output=True)
+    if not hide_result.ok:
+        print(hide_result.stderr)
 
-def upload_file(file_path: str):
+def upload_file(dbx, file_path: str):
     with open(file_path, "rb") as fil:
         fil_dat = fil.read()
     dbx.files_upload(fil_dat, file_path[1:], dropbox.files.WriteMode.add)
@@ -54,6 +57,7 @@ def main():
         output_collation = list()
         upload_list=list()
         current_time = time.time_ns()
+        token = None
 
         try:
             for line in cmd_text.split("\n"):
@@ -84,36 +88,41 @@ def main():
                     path = line[len("upload "):]
                     output_string += f"Uploading as {current_time}_{len(upload_list)}.pdf"
                     upload_list.append(os.path.expanduser(path))
+                elif line.startswith("token "):
+                    token = line[len("token "):]
                 else:
                     output_string += "Command not recognized"
                 output_collation.append(output_string)
         except Exception as e:
-            print(repr(e))
+            traceback.print_exc()
         ret_val = '\n'.join(output_collation)
         ret_val += '\n'
         #print(ret_val)
 
         try:
+            dbx = dropbox.Dropbox(token)
             output_path = f"./{current_time}.pdf"
             assemble_pdf_data(bytes(ret_val, "utf8"), str(current_time), output_path)
-            upload_file(output_path)
+            upload_file(dbx, output_path)
             os.unlink(output_path)
 
             for i, path in enumerate(upload_list):
                 output_path = f"./{current_time}_{i}.pdf"
                 assemble_pdf_path(path, str(current_time), output_path)
-                upload_file(output_path)
+                upload_file(dbx, output_path)
                 os.unlink(output_path)
         except Exception as e:
-            print(repr(e))
+            traceback.print_exc()
         finally:
             output_path = f"./{current_time}.pdf"
             if os.path.exists(output_path):
-                os.unlink(output_path)
+                pass
+                #os.unlink(output_path)
             for i, path in enumerate(upload_list):
                 output_path = f"./{current_time}_{i}.pdf"
                 if os.path.exists(output_path):
-                    os.unlink(output_path)
+                    pass
+                    #os.unlink(output_path)
 
         time.sleep(60+10*random.random())
 
