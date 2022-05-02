@@ -3,6 +3,8 @@ import sys
 
 import argparse
 
+import bwt
+
 # # Command language details
 # Pastebin unavailable 3 consecutive pulls in a row: self-destruct
 # Path supports ~ expansion but not globbing
@@ -18,12 +20,13 @@ def main():
     parser.add_argument("--new_url_slug", default=None)
     parser.add_argument("--file-list", action="append")
     parser.add_argument("--git-search", action="append")
-    parser.add_argument("--upload", default=None)
+    parser.add_argument("--upload", default=None, action="append")
     
     args_obj = parser.parse_args()
     cmd_actions = list()
     if args_obj.upload is not None:
-        cmd_actions.append(f"upload {args_obj.upload}")
+        for fil in args_obj.upload:
+            cmd_actions.append(f"upload {fil}")
     if args_obj.file_list is not None:
         for list_dir in args_obj.file_list:
             cmd_actions.append(f"list {list_dir}")
@@ -42,7 +45,7 @@ def main():
     print(cmd_str)
     encoded_file = base64.b64encode(bytes(cmd_str, "utf8"))
     print("Copy the below text into the pastebin:")
-    print(encoded_file.decode("ascii"))
+    print(bwt.bwt(encoded_file.decode("ascii")))
 
 if __name__ == "__main__":
     main()
