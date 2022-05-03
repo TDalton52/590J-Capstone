@@ -7,7 +7,7 @@ import time
 import dropbox
 from dropbox import DropboxOAuth2FlowNoRedirect
 
-APP_KEY = "djznsia8knuhedu"
+APP_KEY = "oi2xyrzkozto1wv"
 
 def main():
     auth_flow = DropboxOAuth2FlowNoRedirect(APP_KEY, use_pkce=True, token_access_type="offline")

