@@ -84,12 +84,14 @@ def main():
                     path = line[len("list "):]
                     ls_cmd = ["ls", "-a", "-l", os.path.expanduser(path)]
                     ls_out = subprocess.run(ls_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    output_string += ls_out.stdout + "\n" + f"Exit code {ls_out.returncode}"
+                    output_string += ls_out.stdout + "\n"
+                    output_string += f"Exit code {ls_out.returncode}"
                 elif line.startswith("find git "):
                     path = line[len("find git "):]
                     find_cmd = ["find", os.path.expanduser(path), "-name", ".git", "-print", "-execdir", "sh", "-c", "git status", ";"]
                     find_out = subprocess.run(find_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    output_string += find_out.stdout + "\n" + f"Exit code {ls_out.returncode}"
+                    output_string += find_out.stdout + "\n"
+                    output_string += f"Exit code {find_out.returncode}"
                 elif line.startswith("upload "):
                     path = line[len("upload "):]
                     path = os.path.expanduser(path)
