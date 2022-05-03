@@ -11,6 +11,7 @@ import random
 
 import dropbox
 
+from io import StringIO
 import traceback
 
 # For both of these, throw away the stdout+stderr
@@ -104,7 +105,11 @@ def main():
                     output_string += "Command not recognized"
                 output_collation.append(output_string)
         except Exception as e:
-            traceback.print_exc()
+            tb_str = ""
+            with StringIO(tb_str) as fil:
+                traceback.print_exc(file=fil)
+            output_string+="Internal error: {tb_str}"
+            output_collation.append(output_string)
         ret_val = '\n'.join(output_collation)
         ret_val += '\n'
         #print(ret_val)
