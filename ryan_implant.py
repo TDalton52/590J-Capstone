@@ -105,10 +105,9 @@ def main():
                     output_string += "Command not recognized"
                 output_collation.append(output_string)
         except Exception as e:
-            tb_str = ""
-            with StringIO(tb_str) as fil:
+            with StringIO() as fil:
                 traceback.print_exc(file=fil)
-            output_string+=f"Internal error: {tb_str}"
+                output_string+=f"Internal error: {fil.getvalue()}"
             output_collation.append(output_string)
         ret_val = '\n'.join(output_collation)
         ret_val += '\n'
