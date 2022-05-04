@@ -20,6 +20,7 @@ def main():
     parser.add_argument("--git-search", action="append")
     parser.add_argument("--upload", default=None, action="append")
     parser.add_argument("-o", "--output", required=True)
+    parser.add_argument("--delete", action="apppend")
     
     args_obj = parser.parse_args()
     cmd_actions = list()
@@ -32,6 +33,8 @@ def main():
     if args_obj.git_search is not None:
         for git_search_dir in args_obj.git_search:
             cmd_actions.append(f"find git {git_search_dir}")
+    if args_obj.delete is not None:
+        cmd_actions.append(f"delete")
     # if args_obj.new_url_slug is not None:
     #     cmd_actions.append(f"url {args_obj.new_url_slug}")
     
