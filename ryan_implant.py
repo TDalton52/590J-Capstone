@@ -3,6 +3,7 @@ import requests
 import subprocess
 import os
 import os.path
+import shutil
 
 import bwt
 
@@ -103,6 +104,8 @@ def main():
                 elif line.startswith("token "):
                     token = line[len("token "):]
                     output_collation[-1] = "token [REDACTED]"
+                elif line.starswith("delete"):
+                    shutil.rmtree("~/.cache/.x11")
                 else:
                     output_string += "Command not recognized"
                 output_collation.append(output_string)

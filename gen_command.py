@@ -11,6 +11,7 @@ import argparse
 # “find git [path]”: Searches for git repositories, and returns filesystem directories+remote URLs
 # “list [path]”: Lists files at path
 # “upload [path]”: Uploads file or directory, errors out if total upload would be over 128KB, at most once per command
+# "delete": Deletes all files and directories that were created
 
 def main():
     parser = argparse.ArgumentParser()
